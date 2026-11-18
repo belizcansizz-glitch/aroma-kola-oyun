@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aroma Kola - Buz Gibi Sürpriz Oyunu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Press+Start+2P&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --aroma-red: #E30613;
+            --aroma-dark-red: #9E0009;
+            --aroma-silver: #C8CCD0;
+            --aroma-dark-silver: #7E8388;
+            --arcade-bg: #141218;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: var(--arcade-bg);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(227, 6, 19, 0.35) 0%, transparent 65%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 24px 24px, 24px 24px;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .font-pixel {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .font-arcade {
+            font-family: 'Chakra Petch', sans-serif;
+        }
+
+        /* Retro Arcade Frame */
+        .arcade-cabinet {
+            background: linear-gradient(145deg, #232029, #17151C);
+            border: 4px solid #3D3847;
+            box-shadow: 
+                0 0 0 4px #100E14,
+                0 20px 50px rgba(0, 0, 0, 0.8),
+                0 0 40px rgba(227, 6, 19, 0.25);
+            position: relative;
+        }
+
+        /* Subtle CRT Scanline Overlay */
+        .crt-scanlines::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.18) 50%);
+            background-size: 100% 4px;
+            z-index: 40;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        /* 16-bit Pixel / Arcade Buttons */
+        .btn-arcade {
+            background: linear-gradient(180deg, #FF2A36 0%, #E30613 55%, #B0000A 100%);
+            border: 3px solid #FFFFFF;
+            box-shadow: 
+                0 6px 0 #700006,
+                0 10px 20px rgba(227, 6, 19, 0.45);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.45);
+        }
+
+        .btn-arcade:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 0 #700006,
+                0 14px 24px rgba(227, 6, 19, 0.6);
+        }
+
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 2px 0 #700006,
+                0 4px 10px rgba(227, 6, 19, 0.4);
+        }
+
+        .btn-silver {
+            background: linear-gradient(180deg, #F2F4F7 0%, #C8CCD0 55%, #959A9F 100%);
+            color: #18181B;
+            border: 3px solid #FFFFFF;
+            box-shadow: 0 5px 0 #52565A;
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+        }
+
+        .btn-silver:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #52565A;
+        }
+
+        /* Animations */
+        @keyframes bounceIdle {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            45% { transform: translateY(-10px) scale(0.97, 1.03); }
+            85% { transform: translateY(2px) scale(1.03, 0.97); }
+        }
+
+        @keyframes waveArmRight {
+            0%, 100% { transform: rotate(-15deg); }
+            50% { transform: rotate(-55deg); }
+        }
+
+        @keyframes waveArmLeft {
+            0%, 100% { transform: rotate(15deg); }
+            50% { transform: rotate(35deg); }
+        }
+
+        @keyframes keychainSwing {
+            0%, 100% { transform: rotate(-7deg); }
+            50% { transform: rotate(7deg); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(227, 6, 19, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(227, 6, 19, 0.85); }
+        }
+
+        @keyframes floatBubble {
+            0% { transform: translateY(0) scale(0.8); opacity: 0.9; }
+            100% { transform: translateY(-55px) scale(1.3); opacity: 0; }
+        }
+
+        .animate-can-idle {
+            animation: bounceIdle 1.6s infinite ease-in-out;
+            transform-origin: bottom center;
+        }
+
+        .animate-arm-wave {
+            animation: waveArmRight 0.7s infinite ease-in-out;
+            transform-origin: 138px 135px;
+        }
+
+        .animate-arm-left {
+            animation: waveArmLeft 1.4s infinite ease-in-out;
+            transform-origin: 42px 135px;
+        }
+
+        .animate-keychain {
+            animation: keychainSwing 2.4s infinite ease-in-out;
+            transform-origin: top center;
+        }
+
+        .speech-bubble {
+            position: relative;
+            background: #FFFFFF;
+            color: #18181B;
+            border: 3px solid #18181B;
+            box-shadow: 4px 4px 0px #E30613;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 14px 12px 0;
+            border-style: solid;
+            border-color: #18181B transparent transparent;
+            display: block;
+            width: 0;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 11px 9px 0;
+            border-style: solid;
+            border-color: #FFFFFF transparent transparent;
+            display: block;
+            width: 0;
+            z-index: 1;
+        }
+
+        #gameCanvas {
+            touch-action: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Custom Scrollbar for Market Modal */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1C1922;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E30613;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- Top Retro Arcade Marquee Header -->
+    <header class="w-full max-w-lg mb-3 flex items-center justify-between px-3 py-2 rounded-xl bg-gradient-to-r from-[#9E0009] via-[#E30613] to-[#9E0009] border-2 border-white/80 shadow-lg">
+        <div class="flex items-center gap-2">
+            <span class="inline-block w-3 h-3 rounded-full bg-white animate-ping"></span>
+            <span class="font-pixel text-[10px] sm:text-xs tracking-wider text-white drop-shadow">AROMA ARCADE '26</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="soundToggleBtn" onclick="toggleAudio()" title="Sesi Aç/Kapat" class="bg-black/30 hover:bg-black/50 text-white text-xs px-2.5 py-1 rounded-lg border border-white/30 font-arcade font-bold transition">
+                🔊 SES: AÇIK
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Arcade Screen Container -->
+    <main class="arcade-cabinet crt-scanlines w-full max-w-lg rounded-3xl overflow-hidden flex flex-col min-h-[610px] sm:min-h-[650px]">
+        
+        <!-- ========================================================= -->
+        <!-- SCREEN 1: START / TAMAGOTCHI CHARACTER INTRO SCREEN        -->
+        <!-- ========================================================= -->
+        <section id="startScreen" class="flex-1 flex flex-col justify-between p-5 sm:p-6 relative z-10 bg-gradient-to-b from-[#1E1A24] via-[#26161B] to-[#17151C]">
+            
+            <!-- Top Tagline Pill -->
+            <div class="text-center">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-2">
+                    <span class="text-xs font-bold tracking-widest uppercase text-[#FF4D58]">★ DİJİTAL PROMOSYON OYUNU ★</span>
+                </div>
+                <h1 class="font-arcade font-bold text-3xl sm:text-4xl tracking-tight text-white drop-shadow-[0_3px_0_#E30613]">
+                    AROMA <span class="text-[#FF3B47]">KOLA</span>
+                </h1>
+                <p class="text-xs sm:text-sm text-zinc-300 font-medium italic mt-0.5">"Aroma'dan başkasını arama!"</p>
+            </div>
+
+            <!-- Interactive Character Stage -->
+            <div class="flex flex-col items-center my-2 relative">
+                <!-- Speech Bubble -->
+                <div id="introSpeechBubble" class="speech-bubble rounded-2xl p-3.5 sm:p-4 max-w-xs sm:max-w-sm text-center mb-4 transition-all duration-300">
+                    <p id="introDialogueText" class="text-xs sm:text-sm font-bold leading-snug text-zinc-900">
+                        "Selam! Ben <span class="text-[#E30613] font-black">Aroma Kola</span>. Ne kopya, ne nutuk... Sadece buz gibi ferahlık ve bol eğlence! Hazırsan beni ferahlat, sürprizini kap!"
+                    </p>
+                </div>
+
+                <!-- Animated Aroma Kola Can SVG Mascot (Clickable to poke/fizz!) -->
+                <div onclick="pokeCharacter()" class="cursor-pointer group relative flex flex-col items-center" title="Bana dokun!">
+                    <!-- Fizz particles container -->
+                    <div id="introFizzContainer" class="absolute inset-0 pointer-events-none"></div>
+
+                    <svg width="175" height="225" viewBox="0 0 180 230" class="animate-can-idle drop-shadow-[0_14px_18px_rgba(0,0,0,0.65)]">
+                        <defs>
+                            <!-- Metallic Silver Rim Gradient -->
+                            <linearGradient id="silverMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#8C9196"/>
+                                <stop offset="25%" stop-color="#E6E9EC"/>
+                                <stop offset="50%" stop-color="#AEB3B8"/>
+                                <stop offset="80%" stop-color="#F5F7F8"/>
+                                <stop offset="100%" stop-color="#7A7F85"/>
+                            </linearGradient>
+                            <!-- Aroma Red Body Gradient -->
+                            <linearGradient id="aromaRedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#A8000A"/>
+                                <stop offset="22%" stop-color="#E30613"/>
+                                <stop offset="55%" stop-color="#F21825"/>
+                                <stop offset="85%" stop-color="#C90410"/>
+                                <stop offset="100%" stop-color="#8F0008"/>
+                            </linearGradient>
+                            <!-- Lower Silver Swoosh Wave -->
+                            <linearGradient id="lowerSilverWave" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#D4D8DC"/>
+                                <stop offset="50%" stop-color="#9CA1A6"/>
+                                <stop offset="100%" stop-color="#6C7075"/>
+                            </linearGradient>
+                            <clipPath id="canBodyClip">
+                                <rect x="44" y="26" width="92" height="168" rx="14"/>
+                            </clipPath>
+                        </defs>
+
+                        <!-- Cartoon Legs -->
+                        <g stroke="#18181B" stroke-width="4" stroke-linecap="round" fill="none">
+                            <path d="M72 192 L72 214 L60 214" />
+                            <path d="M108 192 L108 214 L120 214" />
+                        </g>
+                        <!-- Retro Sneakers -->
+                        <rect x="52" y="208" width="24" height="11" rx="5" fill="#FFFFFF" stroke="#18181B" stroke-width="3"/>
+                        <rect x="54" y="214" width="20" height="4" fill="#E30613"/>
+                        <rect x="104" y="208" width="24" height="11" rx="5" fill="#FFFFFF" stroke="#18181B" stroke-width="3"/>
+                        <rect x="106" y="214" width="20" height="4" fill="#E30613"/>
+
+                        <!-- Left Arm -->
+                        <g class="animate-arm-left">
+                            <path d="M44 128 Q20 122 18 142" stroke="#18181B" stroke-width="5" stroke-linecap="round" fill="none"/>
+                            <circle cx="18" cy="144" r="8" fill="#FFFFFF" stroke="#18181B" stroke-width="3"/>
+                        </g>
+
+                        <!-- Right Arm (Waving) -->
+                        <g class="animate-arm-wave">
+                            <path d="M136 128 Q162 112 164 90" stroke="#18181B" stroke-width="5" stroke-linecap="round" fill="none"/>
+                            <circle cx="164" cy="88" r="8" fill="#FFFFFF" stroke="#18181B" stroke-width="3"/>
+                        </g>
+
+                        <!-- Can Top Lid -->
+                        <ellipse cx="90" cy="24" rx="42" ry="8" fill="url(#silverMetal)" stroke="#18181B" stroke-width="3"/>
+                        <ellipse cx="90" cy="23" rx="34" ry="4.5" fill="#9A9FA4"/>
+
+                        <!-- Can Main Body -->
+                        <g clip-path="url(#canBodyClip)">
+                            <!-- Red Base -->
+                            <rect x="44" y="24" width="92" height="172" fill="url(#aromaRedGrad)"/>
+                            
+                            <!-- Dynamic Silver Wave Design matching Aroma Kola 330ml can -->
+                            <path d="M40 135 Q95 118 140 158 L140 198 L40 198 Z" fill="url(#lowerSilverWave)"/>
+                            <path d="M40 135 Q95 118 140 158" stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="0.8"/>
+                            <!-- Subtle decorative swirl lines -->
+                            <path d="M44 46 Q96 42 132 68" stroke="#FFFFFF" stroke-width="1.5" fill="none" opacity="0.45"/>
+                            <path d="M44 51 Q94 48 128 73" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.3"/>
+
+                            <!-- Aroma White Brand Logo -->
+                            <text x="90" y="72" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="21" letter-spacing="-0.5">aroma</text>
+                            <circle cx="123" cy="61" r="2.2" fill="none" stroke="#FFFFFF" stroke-width="0.9"/>
+                            <text x="123" y="62.2" text-anchor="middle" fill="#FFFFFF" font-size="3" font-weight="bold">R</text>
+
+                            <!-- Expressive Arcade Eyes -->
+                            <g id="mascotEyes">
+                                <!-- Left Eye -->
+                                <ellipse cx="74" cy="96" rx="10" ry="12" fill="#FFFFFF" stroke="#18181B" stroke-width="2.5"/>
+                                <circle cx="76" cy="96" r="5" fill="#18181B"/>
+                                <circle cx="78" cy="93" r="2" fill="#FFFFFF"/>
+                                <!-- Right Eye -->
+                                <ellipse cx="106" cy="96" rx="10" ry="12" fill="#FFFFFF" stroke="#18181B" stroke-width="2.5"/>
+                                <circle cx="104" cy="96" r="5" fill="#18181B"/>
+                                <circle cx="106" cy="93" r="2" fill="#FFFFFF"/>
+                            </g>
+
+                            <!-- Cheerful Mouth -->
+                            <path d="M77 115 Q90 128 103 115 Z" fill="#18181B"/>
+                            <path d="M82 120 Q90 125 98 120 Z" fill="#FF5A65"/>
+
+                            <!-- Vertical "Kola" White Typography -->
+                            <text x="86" y="166" text-anchor="middle" fill="#FFFFFF" font-family="Georgia, serif" font-weight="bold" font-size="31" letter-spacing="-1">Kola</text>
+                            
+                            <!-- 330 ml badge -->
+                            <text x="114" y="186" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="700" font-size="8.5" opacity="0.9">330 ml</text>
+                        </g>
+
+                        <!-- Can Outline & Bottom Rim -->
+                        <rect x="44" y="26" width="92" height="168" rx="14" fill="none" stroke="#18181B" stroke-width="3.5"/>
+                        <path d="M48 193 Q90 201 132 193" stroke="url(#silverMetal)" stroke-width="5" stroke-linecap="round" fill="none"/>
+                        
+                        <!-- Cold Condensation Drops -->
+                        <circle cx="54" cy="84" r="2.2" fill="#A5F3FC" opacity="0.85"/>
+                        <circle cx="127" cy="112" r="2.5" fill="#A5F3FC" opacity="0.85"/>
+                        <circle cx="56" cy="148" r="2" fill="#A5F3FC" opacity="0.85"/>
+                    </svg>
+                    <span class="text-[11px] text-zinc-400 mt-1 group-hover:text-white transition">👆 Kola'ya dokun & köpürt!</span>
+                </div>
+            </div>
+
+            <!-- How to Play Quick Badges + Start CTA -->
+            <div class="space-y-3">
+                <div class="grid grid-cols-3 gap-2 text-center bg-black/40 p-2.5 rounded-2xl border border-white/10">
+                    <div class="flex flex-col items-center">
+                        <span class="text-lg">🧊</span>
+                        <span class="text-[11px] font-bold text-cyan-300">+15 Ferahlık</span>
+                    </div>
+                    <div class="flex flex-col items-center border-x border-white/10">
+                        <span class="text-lg">🍋</span>
+                        <span class="text-[11px] font-bold text-yellow-300">+15 Ferahlık</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-lg">☀️</span>
+                        <span class="text-[11px] font-bold text-red-400">Sıcaktan Kaç!</span>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="btn-arcade w-full py-4 rounded-2xl font-pixel text-sm sm:text-base text-white tracking-wider flex items-center justify-center gap-3 cursor-pointer">
+                    <span>▶ OYUNA BAŞLA</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SCREEN 2: INTERACTIVE MINI-GAME ("BUZ GİBİ GÖREV")         -->
+        <!-- ========================================================= -->
+        <section id="gameScreen" class="hidden flex-1 flex-col relative z-10 bg-[#12141D]">
+            
+            <!-- Game HUD Top Bar -->
+            <div class="p-3 sm:p-4 bg-[#1B1924] border-b-2 border-white/15 z-20">
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-base">❄️</span>
+                        <span class="font-arcade font-bold text-xs sm:text-sm uppercase tracking-wide text-cyan-300">Ferahlık Seviyesi</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="timerBadge" class="font-pixel text-[11px] px-2 py-1 rounded bg-white/10 text-yellow-300">20s</span>
+                        <span id="chillPercentText" class="font-pixel text-xs sm:text-sm text-white">%0</span>
+                    </div>
+                </div>
+
+                <!-- Retro Segmented Progress Bar -->
+                <div class="w-full h-5 bg-black/60 rounded-full p-1 border-2 border-white/30 overflow-hidden">
+                    <div id="chillProgressBar" class="h-full rounded-full transition-all duration-150 bg-gradient-to-r from-[#E30613] via-[#38BDF8] to-[#22D3EE]" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Interactive Game Canvas Area -->
+            <div id="canvasWrapper" class="relative flex-1 w-full overflow-hidden cursor-ew-resize">
+                <canvas id="gameCanvas"></canvas>
+                
+                <!-- On-Screen Touch/Click Helper Controls for Mobile Accessibility -->
+                <div class="absolute bottom-2 left-0 right-0 flex justify-between px-4 pointer-events-none opacity-60">
+                    <span class="text-[11px] bg-black/50 px-2.5 py-1 rounded-full border border-white/15 text-zinc-200">◀ Sürükle veya Ok Tuşları ▶</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SCREEN 3: VICTORY & PROMO REWARD SCREEN                   -->
+        <!-- ========================================================= -->
+        <section id="victoryScreen" class="hidden flex-1 flex-col justify-between p-4 sm:p-6 relative z-10 bg-gradient-to-b from-[#1F141A] via-[#2A0E14] to-[#16141C] overflow-y-auto">
+            
+            <!-- Celebration Banner -->
+            <div class="text-center">
+                <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-pixel text-[10px] mb-2 animate-bounce">
+                    ★ %100 BUZ GİBİ FERAHLIK! ★
+                </div>
+                <h2 class="font-arcade font-bold text-2xl sm:text-3xl text-white leading-tight">
+                    TEBRİKLER! <span class="text-[#FF3B47]">SÜRPRİZİN HAZIR!</span>
+                </h2>
+            </div>
+
+            <!-- Character Celebration Dialogue -->
+            <div class="bg-white text-zinc-900 rounded-2xl p-3.5 border-2 border-zinc-900 shadow-[4px_4px_0_#E30613] my-2.5 flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-[#E30613] flex-shrink-0 flex items-center justify-center text-2xl border-2 border-zinc-900 shadow-inner">
+                    🥤
+                </div>
+                <p class="text-xs sm:text-sm font-bold leading-snug">
+                    "Harikasın! Beni buz gibi yaptın! Şimdi sıra sende: <span class="text-[#E30613] underline decoration-2">Sürprizini en yakınındaki marketlerden al!</span>"
+                </p>
+            </div>
+
+            <!-- Promo Reward Card + Mini Keychain Illustration -->
+            <div class="bg-gradient-to-br from-[#2C2836] to-[#1B1822] border-2 border-white/25 rounded-2xl p-4 shadow-xl relative overflow-hidden">
+                <div class="flex items-center gap-3.5">
+                    
+                    <!-- Cute Mini Aroma Keychain Figure Illustration -->
+                    <div class="w-24 sm:w-28 flex-shrink-0 flex flex-col items-center justify-center bg-black/35 rounded-xl p-2 border border-white/10">
+                        <svg width="78" height="112" viewBox="0 0 90 130" class="animate-keychain">
+                            <!-- Metal Keyring -->
+                            <circle cx="45" cy="16" r="11" fill="none" stroke="#D4D8DC" stroke-width="3.5"/>
+                            <circle cx="45" cy="16" r="8.5" fill="none" stroke="#8C9196" stroke-width="1.5"/>
+                            <!-- Chain Links -->
+                            <rect x="42.5" y="26" width="5" height="9" rx="2.5" fill="none" stroke="#E5E7EB" stroke-width="2.2"/>
+                            <line x1="45" y1="34" x2="45" y2="41" stroke="#E5E7EB" stroke-width="2.5"/>
+                            
+                            <!-- Mini Cute Aroma Can Figure -->
+                            <rect x="25" y="41" width="40" height="72" rx="8" fill="#E30613" stroke="#FFFFFF" stroke-width="2"/>
+                            <!-- Top/Bottom Silver Caps -->
+                            <rect x="27" y="41" width="36" height="5" rx="2" fill="#D4D8DC"/>
+                            <path d="M25 91 Q45 84 65 93 L65 107 Q65 113 59 113 L31 113 Q25 113 25 107 Z" fill="#B8BDC2"/>
+                            <!-- Mini Brand & Kawaii Face -->
+                            <text x="45" y="58" text-anchor="middle" fill="#FFFFFF" font-family="Rubik, sans-serif" font-weight="900" font-size="9">aroma</text>
+                            <circle cx="38" cy="68" r="3" fill="#18181B"/>
+                            <circle cx="39" cy="67" r="1" fill="#FFFFFF"/>
+                            <circle cx="52" cy="68" r="3" fill="#18181B"/>
+                            <circle cx="53" cy="67" r="1" fill="#FFFFFF"/>
+                            <path d="M41 74 Q45 79 49 74" stroke="#18181B" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <text x="45" y="102" text-anchor="middle" fill="#FFFFFF" font-family="Georgia, serif" font-weight="bold" font-size="13">Kola</text>
+                        </svg>
+                        <span class="text-[9px] font-bold text-center text-amber-300 leading-tight mt-0.5">MİNİK AROMA ANAHTARLIK</span>
+                    </div>
+
+                    <!-- Promo Explanation & Unique Voucher Code -->
+                    <div class="flex-1 space-y-2">
+                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#E30613] text-white">
+                            HEDİYE KUPONUN
+                        </span>
+                        <p class="text-xs text-zinc-200 leading-relaxed">
+                            En yakın anlaşmalı marketten <strong class="text-white">1 adet Aroma Kola</strong> al, kasa görevlisine bu kodu göster; <strong class="text-amber-300">Minik Aroma Figürü Anahtarlık</strong> hediyeni anında kap!
+                        </p>
+
+                        <!-- Digital Voucher Box -->
+                        <div class="bg-black/60 border-2 border-dashed border-amber-400/80 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-[9px] text-zinc-400 uppercase">Kampanya Kodu</div>
+                                <div id="promoCodeDisplay" class="font-pixel text-xs sm:text-sm text-amber-300 tracking-wider">AROMA-KOLA-7492</div>
+                            </div>
+                            <button onclick="copyPromoCode()" id="copyBtn" class="btn-silver px-2.5 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer flex-shrink-0">
+                                📋 Kopyala
+                            </button>
+                        </div>
+                        <div id="copyFeedback" class="hidden text-[11px] text-emerald-400 font-bold">✓ Kod panoya kopyalandı!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-2.5 mt-3">
+                <button onclick="openMarketModal()" class="btn-arcade w-full py-3.5 rounded-2xl font-arcade font-bold text-base sm:text-lg text-white flex items-center justify-center gap-2 cursor-pointer">
+                    <span>📍 YAKINIMDAKİ MARKETLERİ GÖR</span>
+                </button>
+
+                <button onclick="resetToStart()" class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-zinc-200 font-arcade font-bold text-xs sm:text-sm transition cursor-pointer">
+                    ↻ TEKRAR OYNA
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- NEARBY PARTNER MARKETS MODAL / DRAWER                     -->
+        <!-- ========================================================= -->
+        <div id="marketModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div class="bg-[#1E1B26] border-t-4 sm:border-4 border-[#E30613] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl animate-[slideUp_0.25s_ease-out]">
+                <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-3">
+                    <div>
+                        <h3 class="font-arcade font-bold text-lg text-white flex items-center gap-2">
+                            <span>🏪</span> Anlaşmalı Market Noktaları
+                        </h3>
+                        <p class="text-xs text-zinc-400">Konumuna göre en yakın anahtarlık stoklu noktalar</p>
+                    </div>
+                    <button onclick="closeMarketModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold flex items-center justify-center cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Sample Partner Markets List -->
+                <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                    <!-- Market 1 -->
+                    <div class="bg-black/40 border border-white/15 rounded-2xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm text-white">Köşe Mahalle Marketi</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Stokta Var</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 mt-0.5">Alsancak Mah. 1453 Sok. No:12</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-pixel text-[11px] text-amber-300 block">150m</span>
+                            <span class="text-[10px] text-zinc-400">~2 dk yürüme</span>
+                        </div>
+                    </div>
+
+                    <!-- Market 2 -->
+                    <div class="bg-black/40 border border-white/15 rounded-2xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm text-white">Şehir Süpermarket</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Stokta Var</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 mt-0.5">Kıbrıs Şehitleri Cad. No:48</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-pixel text-[11px] text-amber-300 block">320m</span>
+                            <span class="text-[10px] text-zinc-400">~4 dk yürüme</span>
+                        </div>
+                    </div>
+
+                    <!-- Market 3 -->
+                    <div class="bg-black/40 border border-white/15 rounded-2xl p-3 flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm text-white">Kampüs Ekspres Büfe</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">Son 6 Adet</span>
+                            </div>
+                            <p class="text-xs text-zinc-400 mt-0.5">Bornova Meydan Girişi No:5</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-pixel text-[11px] text-amber-300 block">500m</span>
+                            <span class="text-[10px] text-zinc-400">~6 dk yürüme</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-white/10 text-center">
+                    <p class="text-[11px] text-zinc-400 mb-3">
+                        Kasada <strong class="text-amber-300" id="modalCodePreview">AROMA-KOLA-7492</strong> kodunu okutmayı unutma!
+                    </p>
+                    <button onclick="closeMarketModal()" class="btn-arcade w-full py-3 rounded-xl font-arcade font-bold text-sm text-white cursor-pointer">
+                        TAMAM, ANLAŞILDI!
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Brand Note -->
+    <footer class="mt-3 text-center text-[11px] text-zinc-500">
+        Aroma Kola 330 ml • "Aroma'dan başkasını arama!" • Kampanya stoklarla sınırlıdır.
+    </footer>
+
+    <script>
+        /* =========================================================================
+           1. RETRO 16-BIT WEB AUDIO SYNTHESIZER (No external audio files needed)
+           ========================================================================= */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('soundToggleBtn');
+            btn.textContent = soundEnabled ? '🔊 SES: AÇIK' : '🔇 SES: KAPALI';
+            if (soundEnabled) {
+                initAudio();
+                playTone(520, 'square', 0.08, 0.08);
+            }
+        }
+
+        function playTone(freq, type = 'square', duration = 0.1, vol = 0.1, slideFreq = null) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                if (slideFreq) {
+                    osc.frequency.exponentialRampToValueAtTime(slideFreq, audioCtx.currentTime + duration);
+                }
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                // Ignore audio context autoplay blocks before interaction
+            }
+        }
+
+        function playFizzSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const bufferSize = audioCtx.sampleRate * 0.18;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 3200;
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noise.start();
+            } catch (e) {}
+        }
+
+        function playCollectSfx(isBonus = false) {
+            playFizzSound();
+            playTone(isBonus ? 660 : 520, 'square', 0.12, 0.09, isBonus ? 990 : 780);
+        }
+
+        function playHitSfx() {
+            playTone(220, 'sawtooth', 0.22, 0.12, 95);
+        }
+
+        function playVictoryFanfare() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((n, idx) => {
+                setTimeout(() => playTone(n, 'square', 0.18, 0.11), idx * 110);
+            });
+            setTimeout(playFizzSound, 350);
+        }
+
+        /* =========================================================================
+           2. INTRO SCREEN INTERACTIVE CHARACTER DIALOGUE & FIZZ POKE
+           ========================================================================= */
+        const introDialogues = [
+            `"Selam! Ben <span class='text-[#E30613] font-black'>Aroma Kola</span>. Ne kopya, ne nutuk... Sadece buz gibi ferahlık ve bol eğlence! Hazırsan beni ferahlat, sürprizini kap!"`,
+            `"FSSS! Oh be, köpüklerim şimdiden coştu! Hadi <span class='text-[#E30613] font-black'>Oyuna Başla</span>'ya bas da %100 ferahlayalım!"`,
+            `"Buz küplerini ve limonları kap, sıcaktan kaç! Oyunu bitirince <span class='text-[#E30613] font-black'>Minik Aroma Anahtarlık</span> seni bekliyor!"`
+        ];
+        let dialogueIndex = 0;
+
+        function pokeCharacter() {
+            playFizzSound();
+            playTone(480, 'triangle', 0.1, 0.08, 720);
+            
+            dialogueIndex = (dialogueIndex + 1) % introDialogues.length;
+            document.getElementById('introDialogueText').innerHTML = introDialogues[dialogueIndex];
+
+            // Spawn cute floating fizz bubbles around the mascot
+            const container = document.getElementById('introFizzContainer');
+            for (let i = 0; i < 6; i++) {
+                const bubble = document.createElement('div');
+                const size = 6 + Math.random() * 10;
+                bubble.style.position = 'absolute';
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.borderRadius = '9999px';
+                bubble.style.background = 'rgba(255, 255, 255, 0.85)';
+                bubble.style.border = '1px solid #38BDF8';
+                bubble.style.left = `${35 + Math.random() * 100}px`;
+                bubble.style.top = `${40 + Math.random() * 90}px`;
+                bubble.style.animation = 'floatBubble 0.85s ease-out forwards';
+                container.appendChild(bubble);
+                setTimeout(() => bubble.remove(), 850);
+            }
+        }
+
+        /* =========================================================================
+           3. MINI-GAME ENGINE ("FERAHLIK & KÖPÜK")
+           ========================================================================= */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameActive = false;
+        let chillLevel = 0; // 0 to 100
+        let timeLeft = 20;
+        let lastTimestamp = 0;
+        let spawnTimer = 0;
+        let timerAccumulator = 0;
+        let animationFrameId = null;
+
+        // Player state (Aroma Kola character)
+        const player = {
+            x: 180,
+            y: 0,
+            width: 56,
+            height: 92,
+            targetX: 180,
+            speed: 460,
+            mood: 'happy', // 'happy', 'chilled', 'shocked'
+            moodTimer: 0,
+            bouncePhase: 0
+        };
+
+        // Keyboard state
+        const keys = { left: false, right: false };
+
+        // Falling items & visual popups
+        let items = [];
+        let popups = [];
+        let particles = [];
+
+        const ITEM_TYPES = [
+            { type: 'ice', emoji: '🧊', label: 'BUZ GİBİ! +15', points: 15, radius: 22, speedMin: 190, speedMax: 270, weight: 32 },
+            { type: 'lemon', emoji: '🍋', label: 'FERAH! +15', points: 15, radius: 22, speedMin: 200, speedMax: 280, weight: 28 },
+            { type: 'fizz', emoji: '🫧', label: 'FSSS! +10', points: 10, radius: 20, speedMin: 170, speedMax: 240, weight: 20 },
+            { type: 'sun', emoji: '☀️', label: 'SICAK! -15', points: -15, radius: 24, speedMin: 210, speedMax: 290, weight: 13 },
+            { type: 'speech', emoji: '📢', label: 'KLİŞE NUTUK! -10', points: -10, radius: 23, speedMin: 200, speedMax: 270, weight: 7 }
+        ];
+
+        function resizeCanvas() {
+            const wrapper = document.getElementById('canvasWrapper');
+            if (!wrapper) return;
+            const rect = wrapper.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                player.y = canvas.height - player.height - 18;
+                player.x = Math.min(Math.max(player.x, player.width / 2 + 10), canvas.width - player.width / 2 - 10);
+                player.targetX = player.x;
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Input Listeners (Keyboard + Mouse + Touch)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+        });
+
+        function handlePointerMove(clientX) {
+            if (!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
+            const relX = clientX - rect.left;
+            const margin = player.width / 2 + 8;
+            player.targetX = Math.max(margin, Math.min(canvas.width - margin, relX));
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            handlePointerMove(e.clientX);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0].clientX);
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0].clientX);
+            }
+        }, { passive: true });
+
+        function startGame() {
+            initAudio();
+            playTone(440, 'square', 0.1, 0.1, 660);
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.add('hidden');
+            const gameScreen = document.getElementById('gameScreen');
+            gameScreen.classList.remove('hidden');
+            gameScreen.classList.add('flex');
+
+            resizeCanvas();
+
+            // Reset game state
+            chillLevel = 0;
+            timeLeft = 20;
+            items = [];
+            popups = [];
+            particles = [];
+            player.x = canvas.width / 2;
+            player.targetX = canvas.width / 2;
+            player.mood = 'happy';
+            player.moodTimer = 0;
+            spawnTimer = 0;
+            timerAccumulator = 0;
+            gameActive = true;
+
+            updateHUD();
+            lastTimestamp = performance.now();
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateHUD() {
+            const clamped = Math.max(0, Math.min(100, Math.round(chillLevel)));
+            document.getElementById('chillPercentText').textContent = `%${clamped}`;
+            document.getElementById('chillProgressBar').style.width = `${clamped}%`;
+            document.getElementById('timerBadge').textContent = `${timeLeft}s`;
+        }
+
+        function spawnFallingItem() {
+            const totalWeight = ITEM_TYPES.reduce((sum, item) => sum + item.weight, 0);
+            let r = Math.random() * totalWeight;
+            let chosen = ITEM_TYPES[0];
+            for (const item of ITEM_TYPES) {
+                if (r < item.weight) {
+                    chosen = item;
+                    break;
+                }
+                r -= item.weight;
+            }
+
+            const margin = 32;
+            const x = margin + Math.random() * (canvas.width - margin * 2);
+            const speed = chosen.speedMin + Math.random() * (chosen.speedMax - chosen.speedMin);
+
+            items.push({
+                ...chosen,
+                x,
+                y: -30,
+                vy: speed,
+                wobbleOffset: Math.random() * Math.PI * 2
+            });
+        }
+
+        function spawnBurst(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+                const speed = 70 + Math.random() * 140;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 3 + Math.random() * 4,
+                    color,
+                    life: 0.45 + Math.random() * 0.25
+                });
+            }
+        }
+
+        function addPopupText(x, y, text, isPositive) {
+            popups.push({
+                x,
+                y,
+                text,
+                color: isPositive ? '#38BDF8' : '#FF4D58',
+                life: 0.9
+            });
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameActive) return;
+            const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+            lastTimestamp = timestamp;
+
+            updateGame(dt);
+            drawGame();
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updateGame(dt) {
+            // Countdown timer (if time runs out before 100%, give a gentle boost or reset timer so user always gets fun experience)
+            timerAccumulator += dt;
+            if (timerAccumulator >= 1) {
+                timerAccumulator -= 1;
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    // Keep game engaging: add bonus rush wave if not yet 100%
+                    timeLeft = 10;
+                    addPopupText(canvas.width / 2, canvas.height / 2, "EKSTRA FERAHLIK TURU!", true);
+                }
+                updateHUD();
+            }
+
+            // Player horizontal movement (Keyboard + smooth pointer follow)
+            const margin = player.width / 2 + 8;
+            if (keys.left) {
+                player.targetX -= player.speed * dt;
+            }
+            if (keys.right) {
+                player.targetX += player.speed * dt;
+            }
+            player.targetX = Math.max(margin, Math.min(canvas.width - margin, player.targetX));
+            player.x += (player.targetX - player.x) * Math.min(1, dt * 16);
+            player.bouncePhase += dt * 10;
+
+            if (player.moodTimer > 0) {
+                player.moodTimer -= dt;
+                if (player.moodTimer <= 0) {
+                    player.mood = chillLevel >= 70 ? 'chilled' : 'happy';
+                }
+            }
+
+            // Spawn items regularly
+            spawnTimer -= dt;
+            if (spawnTimer <= 0) {
+                spawnFallingItem();
+                spawnTimer = 0.42 + Math.random() * 0.25;
+            }
+
+            // Update falling items & check collisions
+            for (let i = items.length - 1; i >= 0; i--) {
+                const it = items[i];
+                it.y += it.vy * dt;
+                it.x += Math.sin(it.y * 0.03 + it.wobbleOffset) * 35 * dt;
+
+                // Collision box with Aroma Kola character
+                const dx = Math.abs(it.x - player.x);
+                const dy = Math.abs(it.y - (player.y + player.height * 0.45));
+
+                if (dx < (player.width * 0.55 + it.radius * 0.6) && dy < (player.height * 0.5 + it.radius * 0.6)) {
+                    const isPositive = it.points > 0;
+                    chillLevel = Math.max(0, Math.min(100, chillLevel + it.points));
+                    updateHUD();
+
+                    if (isPositive) {
+                        playCollectSfx(it.points >= 15);
+                        player.mood = 'chilled';
+                        player.moodTimer = 0.65;
+                        spawnBurst(it.x, it.y, '#38BDF8', 12);
+                        addPopupText(player.x, player.y - 16, it.label, true);
+                    } else {
+                        playHitSfx();
+                        player.mood = 'shocked';
+                        player.moodTimer = 0.7;
+                        spawnBurst(it.x, it.y, '#FF3B47', 10);
+                        addPopupText(player.x, player.y - 16, it.label, false);
+                    }
+
+                    items.splice(i, 1);
+
+                    // Check Victory Condition
+                    if (chillLevel >= 100) {
+                        triggerVictory();
+                        return;
+                    }
+                    continue;
+                }
+
+                if (it.y > canvas.height + 40) {
+                    items.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // Update floating popups
+            for (let i = popups.length - 1; i >= 0; i--) {
+                const pop = popups[i];
+                pop.y -= 48 * dt;
+                pop.life -= dt;
+                if (pop.life <= 0) popups.splice(i, 1);
+            }
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Retro Arcade Grid Background inside Canvas
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            const gridSize = 32;
+            for (let gx = 0; gx < canvas.width; gx += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, canvas.height);
+                ctx.stroke();
+            }
+            for (let gy = 0; gy < canvas.height; gy += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, gy);
+                ctx.lineTo(canvas.width, gy);
+                ctx.stroke();
+            }
+
+            // Chill aura glow behind player as meter fills
+            if (chillLevel > 15) {
+                const glowRadius = 50 + (chillLevel / 100) * 55;
+                const grad = ctx.createRadialGradient(player.x, player.y + 45, 10, player.x, player.y + 45, glowRadius);
+                grad.addColorStop(0, `rgba(56, 189, 248, ${0.15 + (chillLevel / 100) * 0.35})`);
+                grad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y + 45, glowRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw Falling Items
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (const it of items) {
+                // Soft circular badge behind emoji for high contrast
+                ctx.beginPath();
+                ctx.arc(it.x, it.y, it.radius, 0, Math.PI * 2);
+                ctx.fillStyle = it.points > 0 ? 'rgba(56, 189, 248, 0.18)' : 'rgba(227, 6, 19, 0.25)';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = it.points > 0 ? 'rgba(125, 211, 252, 0.5)' : 'rgba(255, 90, 101, 0.6)';
+                ctx.stroke();
+
+                ctx.font = '26px sans-serif';
+                ctx.fillText(it.emoji, it.x, it.y + 1);
+            }
+
+            // Draw Player Character (Aroma Kola 330ml Can Mascot)
+            drawAromaCanCharacter(ctx, player.x, player.y, player.width, player.height, player.mood, player.bouncePhase);
+
+            // Draw Particles
+            for (const p of particles) {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, p.life * 1.5);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Draw Floating Popups ("BUZ GİBİ!", "FSSS!")
+            for (const pop of popups) {
+                ctx.globalAlpha = Math.max(0, pop.life);
+                ctx.font = '900 14px "Chakra Petch", sans-serif';
+                ctx.fillStyle = '#18181B';
+                ctx.fillText(pop.text, pop.x + 2, pop.y + 2);
+                ctx.fillStyle = pop.color;
+                ctx.fillText(pop.text, pop.x, pop.y);
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawAromaCanCharacter(ctx, centerX, topY, w, h, mood, phase) {
+            const bounceY = Math.sin(phase) * 3;
+            const x = centerX - w / 2;
+            const y = topY + bounceY;
+
+            ctx.save();
+
+            // Cartoon Legs & Sneakers
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            const legSwing = Math.sin(phase * 1.4) * 4;
+            ctx.beginPath();
+            ctx.moveTo(centerX - 11, y + h - 4);
+            ctx.lineTo(centerX - 13, y + h + 10 + legSwing);
+            ctx.moveTo(centerX + 11, y + h - 4);
+            ctx.lineTo(centerX + 13, y + h + 10 - legSwing);
+            ctx.stroke();
+
+            // Sneakers
+            ctx.fillStyle = '#E30613';
+            ctx.fillRect(centerX - 21, y + h + 7 + legSwing, 13, 6);
+            ctx.fillRect(centerX + 8, y + h + 7 - legSwing, 13, 6);
+
+            // Animated Arms
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            // Left arm
+            ctx.moveTo(x, y + h * 0.48);
+            ctx.lineTo(x - 13, y + h * 0.35 - Math.cos(phase) * 6);
+            // Right arm
+            ctx.moveTo(x + w, y + h * 0.48);
+            ctx.lineTo(x + w + 13, y + h * 0.35 + Math.cos(phase) * 6);
+            ctx.stroke();
+
+            // White cartoon gloves
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(x - 13, y + h * 0.35 - Math.cos(phase) * 6, 4.5, 0, Math.PI * 2);
+            ctx.arc(x + w + 13, y + h * 0.35 + Math.cos(phase) * 6, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Can Body Rounded Rect
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, 9);
+            ctx.fillStyle = '#E30613';
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.stroke();
+
+            // Lower Silver Swoosh Wave
+            ctx.save();
+            ctx.clip();
+            ctx.fillStyle = '#B8BDC2';
+            ctx.beginPath();
+            ctx.moveTo(x, y + h * 0.62);
+            ctx.quadraticCurveTo(centerX, y + h * 0.54, x + w, y + h * 0.72);
+            ctx.lineTo(x + w, y + h);
+            ctx.lineTo(x, y + h);
+            ctx.closePath();
+            ctx.fill();
+
+            // Top Silver Rim
+            ctx.fillStyle = '#D4D8DC';
+            ctx.fillRect(x, y, w, 6);
+            ctx.restore();
+
+            // "aroma" Logo
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '900 11px Rubik, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('aroma', centerX, y + 18);
+
+            // Expressive Eyes based on Mood
+            if (mood === 'shocked') {
+                // X_X or Wide Surprised Eyes
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(centerX - 10, y + 34, 6.5, 0, Math.PI * 2);
+                ctx.arc(centerX + 10, y + 34, 6.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#18181B';
+                ctx.beginPath();
+                ctx.arc(centerX - 10, y + 34, 2, 0, Math.PI * 2);
+                ctx.arc(centerX + 10, y + 34, 2, 0, Math.PI * 2);
+                ctx.fill();
+                // Surprised O mouth
+                ctx.beginPath();
+                ctx.arc(centerX, y + 47, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (mood === 'chilled') {
+                // Cool Sunglasses / Happy Arcs
+                ctx.fillStyle = '#18181B';
+                ctx.fillRect(centerX - 19, y + 29, 16, 9);
+                ctx.fillRect(centerX + 3, y + 29, 16, 9);
+                ctx.fillRect(centerX - 3, y + 31, 6, 2.5);
+                // Big Smile
+                ctx.beginPath();
+                ctx.arc(centerX, y + 44, 7, 0, Math.PI);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+            } else {
+                // Standard Lively Eyes
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.ellipse(centerX - 9, y + 34, 5.5, 6.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(centerX + 9, y + 34, 5.5, 6.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#18181B';
+                ctx.beginPath();
+                ctx.arc(centerX - 8, y + 34, 2.8, 0, Math.PI * 2);
+                ctx.arc(centerX + 8, y + 34, 2.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Happy Smile
+                ctx.beginPath();
+                ctx.arc(centerX, y + 44, 6, 0, Math.PI);
+                ctx.fillStyle = '#18181B';
+                ctx.fill();
+            }
+
+            // "Kola" Label
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 16px Georgia, serif';
+            ctx.fillText('Kola', centerX, y + 73);
+
+            ctx.restore();
+        }
+
+        /* =========================================================================
+           4. VICTORY, UNIQUE PROMO CODE & MARKET MODAL LOGIC
+           ========================================================================= */
+        function generatePromoCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let suffix = '';
+            for (let i = 0; i < 4; i++) {
+                suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return `AROMA-KOLA-${suffix}`;
+        }
+
+        function triggerVictory() {
+            gameActive = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            playVictoryFanfare();
+
+            const code = generatePromoCode();
+            document.getElementById('promoCodeDisplay').textContent = code;
+            document.getElementById('modalCodePreview').textContent = code;
+            document.getElementById('copyFeedback').classList.add('hidden');
+
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('flex');
+
+            const victoryScreen = document.getElementById('victoryScreen');
+            victoryScreen.classList.remove('hidden');
+            victoryScreen.classList.add('flex');
+        }
+
+        function copyPromoCode() {
+            const codeText = document.getElementById('promoCodeDisplay').textContent;
+            const tempInput = document.createElement('input');
+            tempInput.value = codeText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            playTone(780, 'square', 0.09, 0.08);
+            const feedback = document.getElementById('copyFeedback');
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 2500);
+        }
+
+        function openMarketModal() {
+            playTone(540, 'square', 0.08, 0.08);
+            document.getElementById('marketModal').classList.remove('hidden');
+        }
+
+        function closeMarketModal() {
+            playTone(420, 'square', 0.08, 0.08);
+            document.getElementById('marketModal').classList.add('hidden');
+        }
+
+        function resetToStart() {
+            gameActive = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            document.getElementById('victoryScreen').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.remove('flex');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('flex');
+            document.getElementById('startScreen').classList.remove('hidden');
+            playTone(520, 'square', 0.1, 0.08);
+        }
+    </script>
+</body>
+</html>
